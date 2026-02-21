@@ -14,7 +14,10 @@ const PORT = process.env.PORT || 4000;
 const app = (0, express_1.default)();
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin(requestOrigin, callback) {
+        callback(null, true);
+    },
+    // origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     methods: ['GET', 'POST'],
 }));
 app.use(express_1.default.json());
@@ -42,7 +45,7 @@ async function boot() {
     app.listen(PORT, async () => {
         console.log(`Server is running on http://localhost:${PORT}`);
     });
-    // Start the cron scheduler (every 6 hours by default)
+    // Start the cron scheduler (every 1 hours by default)
     (0, cronScheduler_1.startCronJob)();
     // Run an initial ingestion on startup so the DB is populated immediately
     if (process.env.INGEST_ON_START !== 'false') {

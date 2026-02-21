@@ -41,13 +41,11 @@ const axios_1 = __importStar(require("axios"));
 const Article_1 = __importDefault(require("../models/Article"));
 const BASE_URL = 'https://newsdata.io/api/1/news';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-/** Normalises a field that NewsData.io may return as string, array, or null. */
 function toArray(value) {
     if (!value)
         return [];
     return Array.isArray(value) ? value : [value];
 }
-/** Maps a raw NewsData.io article to our MongoDB document shape. */
 function mapArticle(raw) {
     return {
         article_id: raw.article_id,
@@ -79,7 +77,6 @@ function mapArticle(raw) {
     };
 }
 // ─── Core fetch helpers ───────────────────────────────────────────────────────
-/** Fetches a single page from NewsData.io. */
 async function fetchPage(apiKey, params, cursor) {
     const query = {
         apikey: apiKey,
@@ -102,12 +99,6 @@ async function fetchPage(apiKey, params, cursor) {
     };
 }
 // ─── Public ingestion function ────────────────────────────────────────────────
-/**
- * Fetches up to `maxPages` pages from NewsData.io and upserts every article
- * into MongoDB using `article_id` as the deduplication key.
- *
- * Returns a summary object with counts for observability.
- */
 async function ingestArticles(options = {}) {
     const apiKey = process.env.NEWSDATA_API_KEY;
     if (!apiKey)
@@ -124,7 +115,7 @@ async function ingestArticles(options = {}) {
             if (!articles.length)
                 break;
             fetched += articles.length;
-            // ── Bulk upsert (keyed on article_id, never creates duplicates) ────────
+            // ── Bulk upsert (keyed on article_id) ────────
             const ops = articles.map((raw) => ({
                 updateOne: {
                     filter: { article_id: raw.article_id },
@@ -145,7 +136,7 @@ async function ingestArticles(options = {}) {
                 ? `${err.message} (status ${err.response?.status ?? 'N/A'})`
                 : String(err);
             console.error(`[Ingestion] Page ${page + 1} failed:`, msg);
-            break; // Don't hammer the API after an error
+            break;
         }
     }
     const summary = {

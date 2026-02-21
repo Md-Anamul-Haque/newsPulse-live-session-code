@@ -1,1 +1,1 @@
-{"version":3,"file":"newsFetcher.d.ts","sourceRoot":"","sources":["../../src/services/newsFetcher.ts"],"names":[],"mappings":"AAEA,OAAO,EAGL,gBAAgB,EAChB,gBAAgB,EAGjB,MAAM,UAAU,CAAC;AAgFlB;;;;;GAKG;AACH,wBAAsB,cAAc,CAClC,OAAO,GAAE,gBAAqB,GAC7B,OAAO,CAAC,gBAAgB,CAAC,CA8D3B"}
+{"version":3,"file":"newsFetcher.d.ts","sourceRoot":"","sources":["../../src/services/newsFetcher.ts"],"names":[],"mappings":"AAEA,OAAO,EAGL,gBAAgB,EAChB,gBAAgB,EAGjB,MAAM,UAAU,CAAC;AA8ElB,wBAAsB,cAAc,CAClC,OAAO,GAAE,gBAAqB,GAC7B,OAAO,CAAC,gBAAgB,CAAC,CA8D3B"}

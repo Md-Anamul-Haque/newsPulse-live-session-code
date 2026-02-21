@@ -3,9 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.startCronJob = startCronJob;
 exports.stopCronJob = stopCronJob;
 const newsFetcher_1 = require("./newsFetcher");
-// Default: every 6 hours in ms. Override with CRON_INTERVAL_MS env var.
 const INTERVAL_MS = Number(process.env.CRON_INTERVAL_MS ?? 1 * 60 * 60 * 1000);
-// Prevents overlapping runs if a fetch takes longer than the interval
 let isRunning = false;
 let intervalHandle = null;
 async function runIngestion() {
