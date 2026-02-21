@@ -83,7 +83,6 @@ router.get(
           : {}),
       }
       const [articles, total] = await Promise.all([
-
         Article.find(filters)
           .sort({ [sortField]: sortDir })
           .skip(skip)

@@ -7,6 +7,10 @@ import "./index.css";
 import GeneralLayout from "./routes/(general)/layout";
 import HomePage from "./routes/(general)/page";
 import ArticleDetailsPage from "./routes/(general)/article/[id]/page";
+import SavedArticlesPage from "./routes/(general)/saved/page";
+
+import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "sonner";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,12 +28,17 @@ const router = createBrowserRouter([
     children: [
       { index: true, Component: HomePage },
       { path: "article/:id", Component: ArticleDetailsPage },
+      { path: "saved", Component: SavedArticlesPage },
     ],
   },
 ]);
+
 createRoot(document.getElementById("root")!).render(
-  <QueryClientProvider client={queryClient}>
-    <RouterProvider router={router} />
-    <ReactQueryDevtools initialIsOpen={false} />
-  </QueryClientProvider>
+  <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+      <Toaster position="top-center" richColors />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  </ThemeProvider>
 );

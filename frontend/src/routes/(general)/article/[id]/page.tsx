@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { format } from "date-fns";
-import { ArrowLeft, Calendar, ExternalLink, Globe, User, Clock, Bookmark, Share2, Twitter, Linkedin, Link2, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar, ExternalLink, Globe, User, Clock, Bookmark, Share2, Twitter, Linkedin, MapPin, Link as LinkIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
-import { Badge } from "../../../../components/ui/badge";
-import { Button } from "../../../../components/ui/button";
-import { Skeleton } from "../../../../components/ui/skeleton";
-import type { Article, ApiSuccessResponse, ApiPaginatedResponse } from "../../../../types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { useStore } from "@/store";
+import type { Article, ApiSuccessResponse, ApiPaginatedResponse } from "@/types";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
 
@@ -40,9 +42,27 @@ const ArticleDetailsPage = () => {
         return minutes;
     };
 
-    const copyToClipboard = () => {
+    // Explicitly select the state array to trigger re-renders
+    const savedArticles = useStore((state) => state.savedArticles);
+    const saveArticle = useStore((state) => state.saveArticle);
+    const removeArticle = useStore((state) => state.removeArticle);
+
+    const saved = article ? savedArticles.some(a => a.article_id === article.article_id) : false;
+
+    const handleSaveToggle = () => {
+        if (!article) return;
+        if (saved) {
+            removeArticle(article.article_id);
+            toast.info("Article removed from reading list");
+        } else {
+            saveArticle(article);
+            toast.success("Article saved to reading list");
+        }
+    };
+
+    const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
-        // You could add a toast here if available
+        toast.success("Link copied to clipboard");
     };
 
     if (isLoading) {
@@ -88,9 +108,14 @@ const ArticleDetailsPage = () => {
                         Back to Feed
                     </Link>
                 </Button>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="icon" className="h-9 w-9 rounded-full">
-                        <Bookmark className="h-4 w-4" />
+                <div className="flex gap-2 relative z-10">
+                    <Button variant="outline" size="sm" onClick={handleSaveToggle} className={`gap-2 ${saved ? 'text-primary border-primary/50' : ''}`}>
+                        <Bookmark className="h-4 w-4" fill={saved ? "currentColor" : "none"} />
+                        {saved ? "Saved" : "Save"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-2">
+                        <LinkIcon className="h-4 w-4" />
+                        Copy Link
                     </Button>
                     <Button variant="outline" size="icon" className="h-9 w-9 rounded-full">
                         <Share2 className="h-4 w-4" />
@@ -116,7 +141,7 @@ const ArticleDetailsPage = () => {
                 </div>
             ) : (
                 <div className="relative aspect-video rounded-3xl overflow-hidden bg-linear-to-br from-primary/10 via-primary/5 to-background flex flex-col items-center justify-center border shadow-inner">
-                    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_2px_2px,var(--primary)_1px,transparent_0)] [background-size:32px_32px]" />
+                    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(circle_at_2px_2px,var(--primary)_1px,transparent_0)] bg-size-[32px_32px]" />
                     <Globe className="w-24 h-24 text-primary/10" />
                     <p className="mt-4 text-sm font-medium text-muted-foreground/60 tracking-widest uppercase">Global Industry News</p>
                 </div>
@@ -159,8 +184,8 @@ const ArticleDetailsPage = () => {
                         {article.title}
                     </h1>
                     <div className="flex gap-2 shrink-0">
-                        <Button variant="outline" size="icon" onClick={copyToClipboard} className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground transition-colors" title="Copy Link">
-                            <Link2 className="h-4 w-4" />
+                        <Button variant="outline" size="icon" onClick={handleCopyLink} className="rounded-full h-10 w-10 hover:bg-primary hover:text-primary-foreground transition-colors" title="Copy Link">
+                            <LinkIcon className="h-4 w-4" />
                         </Button>
                         <Button variant="outline" size="icon" className="rounded-full h-10 w-10 hover:bg-[#1DA1F2] hover:text-white transition-colors" title="Share on X">
                             <Twitter className="h-4 w-4" />

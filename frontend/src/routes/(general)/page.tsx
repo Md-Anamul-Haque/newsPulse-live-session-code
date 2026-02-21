@@ -9,17 +9,25 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useSearchParams } from "react-router";
-import { FilterSidebar } from "../../components/FilterSidebar";
-import { NewsCard } from "../../components/NewsCard";
-import { Button } from "../../components/ui/button";
-import { cn } from "../../lib/utils";
+import { FilterSidebar } from "@/components/FilterSidebar";
+import { NewsCard } from "@/components/NewsCard";
+import { Pagination } from "@/components/Pagination";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import type {
   ApiPaginatedResponse,
   ApiSuccessResponse,
   Article,
   FilterMeta,
   NewsQueryParams,
-} from "../../types";
+} from "@/types";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
 
@@ -45,6 +53,8 @@ const HomePage = () => {
     if (searchParams.has("dateTo")) params.dateTo = searchParams.get("dateTo")!;
     if (searchParams.has("page"))
       params.page = parseInt(searchParams.get("page")!, 10);
+    if (searchParams.has("limit"))
+      params.limit = parseInt(searchParams.get("limit")!, 10);
     return params;
   }, [searchParams]);
 
@@ -60,7 +70,7 @@ const HomePage = () => {
       const response = await axios.get<ApiPaginatedResponse<Article>>(
         `${API_BASE}/news`,
         {
-          params: { ...filters, limit: 12 },
+          params: { ...filters, limit: filters.limit || 12 },
         }
       );
       return response.data;
@@ -105,11 +115,18 @@ const HomePage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleLimitChange = (newLimit: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("limit", newLimit);
+    nextParams.delete("page"); // Reset to page 1
+    setSearchParams(nextParams);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       {/* Sidebar - sticky on desktop */}
       <aside className="w-full lg:w-80 shrink-0">
-        <div className="lg:sticky lg:top-24 bg-card rounded-2xl border p-6 shadow-sm">
+        <div className="lg:sticky lg:top-24 bg-card/60 backdrop-blur-xl rounded-2xl border border-border/50 p-6 shadow-xl shadow-black/5 dark:shadow-none">
           <FilterSidebar
             meta={metaData}
             filters={filters}
@@ -131,23 +148,42 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="flex items-center bg-muted/50 p-1 rounded-lg border">
-            <Button
-              variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("grid")}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("list")}
-            >
-              <ListIcon className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 mr-2">
+              <span className="text-xs text-muted-foreground font-medium">Per page:</span>
+              <Select
+                value={String(filters.limit || 12)}
+                onValueChange={handleLimitChange}
+              >
+                <SelectTrigger className="h-8 w-[70px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="12">12</SelectItem>
+                  <SelectItem value="24">24</SelectItem>
+                  <SelectItem value="48">48</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center bg-muted/50 p-1 rounded-lg border">
+              <Button
+                variant={viewMode === "grid" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode("list")}
+              >
+                <ListIcon className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -194,28 +230,12 @@ const HomePage = () => {
 
             {/* Pagination */}
             {newsData && newsData.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-8">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={newsData.page === 1}
-                  onClick={() => handlePageChange(newsData.page - 1)}
-                >
-                  Previous
-                </Button>
-                <div className="flex items-center gap-1.5 px-4 text-sm font-medium">
-                  <span className="text-primary">{newsData.page}</span>
-                  <span className="text-muted-foreground">/</span>
-                  <span>{newsData.totalPages}</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={newsData.page === newsData.totalPages}
-                  onClick={() => handlePageChange(newsData.page + 1)}
-                >
-                  Next
-                </Button>
+              <div className="pt-12">
+                <Pagination
+                  currentPage={newsData.page}
+                  totalPages={newsData.totalPages}
+                  onPageChange={handlePageChange}
+                />
               </div>
             )}
           </>
