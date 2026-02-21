@@ -29,9 +29,6 @@ lerna-debug.log*
 .DS_Store
 .vercel
 
-# production
-/build
-/dist/
 
 # misc
 .DS_Store
